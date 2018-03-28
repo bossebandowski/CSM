@@ -125,35 +125,92 @@ public class Compiler {
 
 			@Override public String visitStart(CompilerParser.StartContext ctx) {return visitChildren(ctx);}
 			@Override public String visitVarDef(CompilerParser.VarDefContext ctx) {
-				return (visit(ctx.lhs)); }// + " := " + visit(ctx.rhs)); }
-			@Override public String visitAppend(CompilerParser.AppendContext ctx) { return visitChildren(ctx); }
-			@Override public String visitDoLoop(CompilerParser.DoLoopContext ctx) { return visitChildren(ctx); }
-			@Override public String visitSkip(CompilerParser.SkipContext ctx) { return visitChildren(ctx); }
-			@Override public String visitIf(CompilerParser.IfContext ctx) { return visitChildren(ctx); }
-			@Override public String visitIfElif(CompilerParser.IfElifContext ctx) { return visitChildren(ctx); }
-			@Override public String visitIfThen(CompilerParser.IfThenContext ctx) { return visitChildren(ctx); }
-			@Override public String visitPlusExpr(CompilerParser.PlusExprContext ctx) { return visitChildren(ctx); }
-			@Override public String visitVar(CompilerParser.VarContext ctx) { return visitChildren(ctx); }
-			@Override public String visitNum(CompilerParser.NumContext ctx) { return visitChildren(ctx); }
-			@Override public String visitPowExpr(CompilerParser.PowExprContext ctx) { return visitChildren(ctx); }
-			@Override public String visitNestedExpr(CompilerParser.NestedExprContext ctx) { return visitChildren(ctx); }
-			@Override public String visitProdExpr(CompilerParser.ProdExprContext ctx) { return visitChildren(ctx); }
-			@Override public String visitUMinusExpr(CompilerParser.UMinusExprContext ctx) { return visitChildren(ctx); }
-			@Override public String visitMinusExpr(CompilerParser.MinusExprContext ctx) { return visitChildren(ctx); }
-			@Override public String visitOr(CompilerParser.OrContext ctx) { return visitChildren(ctx); }
-			@Override public String visitTrue(CompilerParser.TrueContext ctx) { return visitChildren(ctx); }
-			@Override public String visitSmallerEqual(CompilerParser.SmallerEqualContext ctx) { return visitChildren(ctx); }
-			@Override public String visitFalse(CompilerParser.FalseContext ctx) { return visitChildren(ctx); }
-			@Override public String visitUnequal(CompilerParser.UnequalContext ctx) { return visitChildren(ctx); }
-			@Override public String visitNeg(CompilerParser.NegContext ctx) { return visitChildren(ctx); }
-			@Override public String visitGreaterEqual(CompilerParser.GreaterEqualContext ctx) { return visitChildren(ctx); }
-			@Override public String visitEqual(CompilerParser.EqualContext ctx) { return visitChildren(ctx); }
-			@Override public String visitNestedBool(CompilerParser.NestedBoolContext ctx) { return visitChildren(ctx); }
-			@Override public String visitSCOr(CompilerParser.SCOrContext ctx) { return visitChildren(ctx); }
-			@Override public String visitAnd(CompilerParser.AndContext ctx) { return visitChildren(ctx); }
-			@Override public String visitSCAnd(CompilerParser.SCAndContext ctx) { return visitChildren(ctx); }
-			@Override public String visitGreater(CompilerParser.GreaterContext ctx) { return visitChildren(ctx); }
-			@Override public String visitSmaller(CompilerParser.SmallerContext ctx) { return visitChildren(ctx); }
+				myString.appendEdge(String.valueOf(ctx.lhs.getText()) + " := " + String.valueOf(ctx.rhs.getText()), myString.nodeCount, (myString.nodeCount + 1));
+				myString.nodeCount++;
+				System.out.println(String.valueOf(ctx.lhs.getText()) + " := " + String.valueOf(ctx.rhs.getText()));
+				return visitChildren(ctx); }
+			@Override public String visitAppend(CompilerParser.AppendContext ctx) { 
+				System.out.println("append");
+				return visitChildren(ctx); }
+			@Override public String visitDoLoop(CompilerParser.DoLoopContext ctx) {
+				System.out.println("doloop");
+				return visitChildren(ctx); }
+			@Override public String visitSkip(CompilerParser.SkipContext ctx) {
+				System.out.println("skip");
+				return visitChildren(ctx); }
+			@Override public String visitIf(CompilerParser.IfContext ctx) {
+				System.out.println("if");
+				return visitChildren(ctx); }
+			@Override public String visitIfElif(CompilerParser.IfElifContext ctx) {
+				System.out.println("elif");
+				return visitChildren(ctx); }
+			@Override public String visitIfThen(CompilerParser.IfThenContext ctx) {
+				System.out.println("ifthen");
+				return visitChildren(ctx); }
+			@Override public String visitPlusExpr(CompilerParser.PlusExprContext ctx) {
+				System.out.println("plus");
+				return visitChildren(ctx); }
+			@Override public String visitVar(CompilerParser.VarContext ctx) { 
+				return String.valueOf(ctx.exp.getText()); }
+			@Override public String visitNum(CompilerParser.NumContext ctx) {
+				return String.valueOf(ctx.exp.getText()); }
+			@Override public String visitPowExpr(CompilerParser.PowExprContext ctx) {
+				System.out.println("power");
+				return visitChildren(ctx); }
+			@Override public String visitNestedExpr(CompilerParser.NestedExprContext ctx) {
+				System.out.println("paranthesis");
+				return visitChildren(ctx); }
+			@Override public String visitProdExpr(CompilerParser.ProdExprContext ctx) {
+				System.out.println("product");
+				return visitChildren(ctx); }
+			@Override public String visitUMinusExpr(CompilerParser.UMinusExprContext ctx) {
+				System.out.println("uminus");
+				return visitChildren(ctx); }
+			@Override public String visitMinusExpr(CompilerParser.MinusExprContext ctx) {
+				System.out.println("minus");
+				return visitChildren(ctx); }
+			@Override public String visitOr(CompilerParser.OrContext ctx) {
+				System.out.println("or");
+				return visitChildren(ctx); }
+			@Override public String visitTrue(CompilerParser.TrueContext ctx) {
+				System.out.println("true");
+				return String.valueOf(ctx.exp.getText()); }
+			@Override public String visitSmallerEqual(CompilerParser.SmallerEqualContext ctx) {
+				System.out.println("smallerequal");
+				return visitChildren(ctx); }
+			@Override public String visitFalse(CompilerParser.FalseContext ctx) {
+				System.out.println("false");
+				return String.valueOf(ctx.exp.getText()); }
+			@Override public String visitUnequal(CompilerParser.UnequalContext ctx) {
+				System.out.println("unequal");
+				return visitChildren(ctx); }
+			@Override public String visitNeg(CompilerParser.NegContext ctx) {
+				System.out.println("neg");
+				return visitChildren(ctx); }
+			@Override public String visitGreaterEqual(CompilerParser.GreaterEqualContext ctx) {
+				System.out.println("greaterequal");
+				return visitChildren(ctx); }
+			@Override public String visitEqual(CompilerParser.EqualContext ctx) {
+				System.out.println("equal");
+				return visitChildren(ctx); }
+			@Override public String visitNestedBool(CompilerParser.NestedBoolContext ctx) {
+				System.out.println("bparanthesis");
+				return visitChildren(ctx); }
+			@Override public String visitSCOr(CompilerParser.SCOrContext ctx) {
+				System.out.println("scor");
+				return visitChildren(ctx); }
+			@Override public String visitAnd(CompilerParser.AndContext ctx) {
+				System.out.println("and");
+				return visitChildren(ctx); }
+			@Override public String visitSCAnd(CompilerParser.SCAndContext ctx) {
+				System.out.println("scand");
+				return visitChildren(ctx); }
+			@Override public String visitGreater(CompilerParser.GreaterContext ctx) {
+				System.out.println("greater");
+				return visitChildren(ctx); }
+			@Override public String visitSmaller(CompilerParser.SmallerContext ctx) {
+				System.out.println("smaller");
+				return visitChildren(ctx); }
 	}
 	
 	// This class is used to throw the correct exception
