@@ -403,11 +403,11 @@ public class CompilerParser extends Parser {
 					((IfElifContext)_localctx).lhs = _prevctx;
 					pushNewRecursionContext(_localctx, _startState, RULE_gc);
 					setState(41);
-					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
+					if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
 					setState(42);
 					match(ELIF);
 					setState(43);
-					((IfElifContext)_localctx).rhs = gc(2);
+					((IfElifContext)_localctx).rhs = gc(3);
 					}
 					} 
 				}
@@ -633,54 +633,54 @@ public class CompilerParser extends Parser {
 					switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
 					case 1:
 						{
-						_localctx = new PlusExprContext(new AContext(_parentctx, _parentState));
-						((PlusExprContext)_localctx).lhs = _prevctx;
+						_localctx = new PowExprContext(new AContext(_parentctx, _parentState));
+						((PowExprContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_a);
 						setState(60);
 						if (!(precpred(_ctx, 6))) throw new FailedPredicateException(this, "precpred(_ctx, 6)");
 						setState(61);
-						match(PLUS);
+						match(POW);
 						setState(62);
-						((PlusExprContext)_localctx).rhs = a(7);
+						((PowExprContext)_localctx).rhs = a(6);
 						}
 						break;
 					case 2:
 						{
-						_localctx = new MinusExprContext(new AContext(_parentctx, _parentState));
-						((MinusExprContext)_localctx).lhs = _prevctx;
+						_localctx = new ProdExprContext(new AContext(_parentctx, _parentState));
+						((ProdExprContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_a);
 						setState(63);
 						if (!(precpred(_ctx, 5))) throw new FailedPredicateException(this, "precpred(_ctx, 5)");
 						setState(64);
-						match(MIN);
+						match(MULT);
 						setState(65);
-						((MinusExprContext)_localctx).rhs = a(6);
+						((ProdExprContext)_localctx).rhs = a(6);
 						}
 						break;
 					case 3:
 						{
-						_localctx = new ProdExprContext(new AContext(_parentctx, _parentState));
-						((ProdExprContext)_localctx).lhs = _prevctx;
+						_localctx = new PlusExprContext(new AContext(_parentctx, _parentState));
+						((PlusExprContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_a);
 						setState(66);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
 						setState(67);
-						match(MULT);
+						match(PLUS);
 						setState(68);
-						((ProdExprContext)_localctx).rhs = a(5);
+						((PlusExprContext)_localctx).rhs = a(5);
 						}
 						break;
 					case 4:
 						{
-						_localctx = new PowExprContext(new AContext(_parentctx, _parentState));
-						((PowExprContext)_localctx).lhs = _prevctx;
+						_localctx = new MinusExprContext(new AContext(_parentctx, _parentState));
+						((MinusExprContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_a);
 						setState(69);
 						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
 						setState(70);
-						match(POW);
+						match(MIN);
 						setState(71);
-						((PowExprContext)_localctx).rhs = a(3);
+						((MinusExprContext)_localctx).rhs = a(4);
 						}
 						break;
 					}
@@ -732,6 +732,7 @@ public class CompilerParser extends Parser {
 		}
 	}
 	public static class TrueContext extends BContext {
+		public Token exp;
 		public TerminalNode TRUE() { return getToken(CompilerParser.TRUE, 0); }
 		public TrueContext(BContext ctx) { copyFrom(ctx); }
 		@Override
@@ -758,6 +759,7 @@ public class CompilerParser extends Parser {
 		}
 	}
 	public static class FalseContext extends BContext {
+		public Token exp;
 		public TerminalNode FALSE() { return getToken(CompilerParser.FALSE, 0); }
 		public FalseContext(BContext ctx) { copyFrom(ctx); }
 		@Override
@@ -955,7 +957,7 @@ public class CompilerParser extends Parser {
 				_prevctx = _localctx;
 
 				setState(78);
-				match(TRUE);
+				((TrueContext)_localctx).exp = match(TRUE);
 				}
 				break;
 			case 2:
@@ -964,7 +966,7 @@ public class CompilerParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(79);
-				match(FALSE);
+				((FalseContext)_localctx).exp = match(FALSE);
 				}
 				break;
 			case 3:
@@ -975,7 +977,7 @@ public class CompilerParser extends Parser {
 				setState(80);
 				match(NOT);
 				setState(81);
-				((NegContext)_localctx).exp = b(8);
+				((NegContext)_localctx).exp = b(12);
 				}
 				break;
 			case 4:
@@ -1088,11 +1090,11 @@ public class CompilerParser extends Parser {
 						((AndContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_b);
 						setState(112);
-						if (!(precpred(_ctx, 12))) throw new FailedPredicateException(this, "precpred(_ctx, 12)");
+						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
 						setState(113);
 						match(AND);
 						setState(114);
-						((AndContext)_localctx).rhs = b(13);
+						((AndContext)_localctx).rhs = b(12);
 						}
 						break;
 					case 2:
@@ -1101,11 +1103,11 @@ public class CompilerParser extends Parser {
 						((OrContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_b);
 						setState(115);
-						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
+						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
 						setState(116);
 						match(OR);
 						setState(117);
-						((OrContext)_localctx).rhs = b(12);
+						((OrContext)_localctx).rhs = b(11);
 						}
 						break;
 					case 3:
@@ -1114,11 +1116,11 @@ public class CompilerParser extends Parser {
 						((SCAndContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_b);
 						setState(118);
-						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
+						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
 						setState(119);
 						match(SCAND);
 						setState(120);
-						((SCAndContext)_localctx).rhs = b(11);
+						((SCAndContext)_localctx).rhs = b(10);
 						}
 						break;
 					case 4:
@@ -1127,11 +1129,11 @@ public class CompilerParser extends Parser {
 						((SCOrContext)_localctx).lhs = _prevctx;
 						pushNewRecursionContext(_localctx, _startState, RULE_b);
 						setState(121);
-						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
+						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
 						setState(122);
 						match(SCOR);
 						setState(123);
-						((SCOrContext)_localctx).rhs = b(10);
+						((SCOrContext)_localctx).rhs = b(9);
 						}
 						break;
 					}
@@ -1177,7 +1179,7 @@ public class CompilerParser extends Parser {
 	private boolean gc_sempred(GcContext _localctx, int predIndex) {
 		switch (predIndex) {
 		case 1:
-			return precpred(_ctx, 1);
+			return precpred(_ctx, 2);
 		}
 		return true;
 	}
@@ -1197,13 +1199,13 @@ public class CompilerParser extends Parser {
 	private boolean b_sempred(BContext _localctx, int predIndex) {
 		switch (predIndex) {
 		case 6:
-			return precpred(_ctx, 12);
-		case 7:
 			return precpred(_ctx, 11);
-		case 8:
+		case 7:
 			return precpred(_ctx, 10);
-		case 9:
+		case 8:
 			return precpred(_ctx, 9);
+		case 9:
+			return precpred(_ctx, 8);
 		}
 		return true;
 	}
@@ -1225,24 +1227,24 @@ public class CompilerParser extends Parser {
 		"\6\2\2\33\35\3\2\2\2\34\17\3\2\2\2\34\23\3\2\2\2\34\24\3\2\2\2\34\30\3"+
 		"\2\2\2\35#\3\2\2\2\36\37\f\5\2\2\37 \7\b\2\2 \"\5\4\3\6!\36\3\2\2\2\""+
 		"%\3\2\2\2#!\3\2\2\2#$\3\2\2\2$\5\3\2\2\2%#\3\2\2\2&\'\b\4\1\2\'(\5\n\6"+
-		"\2()\7\n\2\2)*\5\4\3\2*\60\3\2\2\2+,\f\3\2\2,-\7\13\2\2-/\5\6\4\4.+\3"+
+		"\2()\7\n\2\2)*\5\4\3\2*\60\3\2\2\2+,\f\4\2\2,-\7\13\2\2-/\5\6\4\5.+\3"+
 		"\2\2\2/\62\3\2\2\2\60.\3\2\2\2\60\61\3\2\2\2\61\7\3\2\2\2\62\60\3\2\2"+
 		"\2\63\64\b\5\1\2\64=\7\37\2\2\65=\7 \2\2\66\67\7\35\2\2\678\5\b\5\289"+
 		"\7\36\2\29=\3\2\2\2:;\7\25\2\2;=\5\b\5\3<\63\3\2\2\2<\65\3\2\2\2<\66\3"+
-		"\2\2\2<:\3\2\2\2=L\3\2\2\2>?\f\b\2\2?@\7\24\2\2@K\5\b\5\tAB\f\7\2\2BC"+
-		"\7\25\2\2CK\5\b\5\bDE\f\6\2\2EF\7\23\2\2FK\5\b\5\7GH\f\5\2\2HI\7\22\2"+
-		"\2IK\5\b\5\5J>\3\2\2\2JA\3\2\2\2JD\3\2\2\2JG\3\2\2\2KN\3\2\2\2LJ\3\2\2"+
+		"\2\2\2<:\3\2\2\2=L\3\2\2\2>?\f\b\2\2?@\7\22\2\2@K\5\b\5\bAB\f\7\2\2BC"+
+		"\7\23\2\2CK\5\b\5\bDE\f\6\2\2EF\7\24\2\2FK\5\b\5\7GH\f\5\2\2HI\7\25\2"+
+		"\2IK\5\b\5\6J>\3\2\2\2JA\3\2\2\2JD\3\2\2\2JG\3\2\2\2KN\3\2\2\2LJ\3\2\2"+
 		"\2LM\3\2\2\2M\t\3\2\2\2NL\3\2\2\2OP\b\6\1\2Pq\7\20\2\2Qq\7\21\2\2RS\7"+
-		"\27\2\2Sq\5\n\6\nTU\5\b\5\2UV\7\34\2\2VW\5\b\5\2Wq\3\2\2\2XY\5\b\5\2Y"+
-		"Z\7\26\2\2Z[\5\b\5\2[q\3\2\2\2\\]\5\b\5\2]^\7\30\2\2^_\5\b\5\2_q\3\2\2"+
-		"\2`a\5\b\5\2ab\7\31\2\2bc\5\b\5\2cq\3\2\2\2de\5\b\5\2ef\7\32\2\2fg\5\b"+
-		"\5\2gq\3\2\2\2hi\5\b\5\2ij\7\33\2\2jk\5\b\5\2kq\3\2\2\2lm\7\35\2\2mn\5"+
-		"\n\6\2no\7\36\2\2oq\3\2\2\2pO\3\2\2\2pQ\3\2\2\2pR\3\2\2\2pT\3\2\2\2pX"+
-		"\3\2\2\2p\\\3\2\2\2p`\3\2\2\2pd\3\2\2\2ph\3\2\2\2pl\3\2\2\2q\u0080\3\2"+
-		"\2\2rs\f\16\2\2st\7\f\2\2t\177\5\n\6\17uv\f\r\2\2vw\7\16\2\2w\177\5\n"+
-		"\6\16xy\f\f\2\2yz\7\r\2\2z\177\5\n\6\r{|\f\13\2\2|}\7\17\2\2}\177\5\n"+
-		"\6\f~r\3\2\2\2~u\3\2\2\2~x\3\2\2\2~{\3\2\2\2\177\u0082\3\2\2\2\u0080~"+
-		"\3\2\2\2\u0080\u0081\3\2\2\2\u0081\13\3\2\2\2\u0082\u0080\3\2\2\2\13\34"+
+		"\27\2\2Sq\5\n\6\16TU\5\b\5\2UV\7\34\2\2VW\5\b\5\2Wq\3\2\2\2XY\5\b\5\2"+
+		"YZ\7\26\2\2Z[\5\b\5\2[q\3\2\2\2\\]\5\b\5\2]^\7\30\2\2^_\5\b\5\2_q\3\2"+
+		"\2\2`a\5\b\5\2ab\7\31\2\2bc\5\b\5\2cq\3\2\2\2de\5\b\5\2ef\7\32\2\2fg\5"+
+		"\b\5\2gq\3\2\2\2hi\5\b\5\2ij\7\33\2\2jk\5\b\5\2kq\3\2\2\2lm\7\35\2\2m"+
+		"n\5\n\6\2no\7\36\2\2oq\3\2\2\2pO\3\2\2\2pQ\3\2\2\2pR\3\2\2\2pT\3\2\2\2"+
+		"pX\3\2\2\2p\\\3\2\2\2p`\3\2\2\2pd\3\2\2\2ph\3\2\2\2pl\3\2\2\2q\u0080\3"+
+		"\2\2\2rs\f\r\2\2st\7\f\2\2t\177\5\n\6\16uv\f\f\2\2vw\7\16\2\2w\177\5\n"+
+		"\6\rxy\f\13\2\2yz\7\r\2\2z\177\5\n\6\f{|\f\n\2\2|}\7\17\2\2}\177\5\n\6"+
+		"\13~r\3\2\2\2~u\3\2\2\2~x\3\2\2\2~{\3\2\2\2\177\u0082\3\2\2\2\u0080~\3"+
+		"\2\2\2\u0080\u0081\3\2\2\2\u0081\13\3\2\2\2\u0082\u0080\3\2\2\2\13\34"+
 		"#\60<JLp~\u0080";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());

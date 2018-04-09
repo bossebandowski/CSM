@@ -62,27 +62,27 @@ c     :			lhs = VAR VARDEF rhs = a		#VarDef
       |			DO exp = gc OD				#DoLoop
       ;
 
-gc    :			lhs = b THEN rhs = c			#IfThen
-      |			lhs = gc ELIF rhs = gc		#IfElif
+gc    :			lhs = gc ELIF rhs = gc		#IfElif
+      |			lhs = b THEN rhs = c			#IfThen
       ;
 
 a     :			exp = NUM					#Num
       |			exp = VAR					#Var
+      | <assoc=right>	lhs = a POW rhs = a			#PowExpr
+      |			lhs = a MULT rhs = a			#ProdExpr
       |			lhs = a PLUS rhs = a			#PlusExpr
       |			lhs = a MIN rhs = a			#MinusExpr
-      |			lhs = a MULT rhs = a			#ProdExpr
-      | <assoc=right>	lhs = a POW rhs = a			#PowExpr
       |			LPAREN exp = a RPAREN			#NestedExpr
       | 			MIN exp = a				#UMinusExpr
       ;
 
-b     :			TRUE						#True
-      |			FALSE						#False
+b     :			exp = TRUE					#True
+      |			exp = FALSE				#False
+      |			NOT exp = b				#Neg
       |			lhs = b AND rhs = b			#And
       |			lhs = b OR rhs = b			#Or
       |			lhs = b SCAND rhs = b			#SCAnd
       |			lhs = b SCOR rhs = b			#SCOr
-      |			NOT exp = b				#Neg
       |			lhs = a EQ rhs = a			#Equal
       |			lhs = a UNEQ rhs = a			#Unequal
       |			lhs = a GT rhs = a			#Greater

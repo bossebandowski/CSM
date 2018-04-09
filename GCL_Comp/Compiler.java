@@ -23,6 +23,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
 public class Compiler {
 	
@@ -38,7 +42,7 @@ public class Compiler {
 		}
 		catch (Exception  e) {
 			System.out.println("ko");
-			// e.printStackTrace ();
+			e.printStackTrace ();
 		}
 	}
 
@@ -76,12 +80,67 @@ public class Compiler {
         
 	}
 	
+	public class Node {
+		int number;
+		boolean start = false;
+		boolean end = false;
+		
+		public Node (int number, boolean start, boolean end) {
+			this.number = number;
+			this.start = start;
+			this.end = end;
+		}
+		
+		public int getNumber() {
+			return this.number;
+		}
+		
+		public boolean isStart() {
+			return this.start;
+		}
+		
+		public boolean isEnd() {
+			return this.end;
+		}
+	}
+	
+	public class Edge {
+		String label;
+		Node startNode;
+		Node targetNode;
+		
+		public Edge (String label, Node startNode, Node targetNode) {
+			this.label = label;
+			this.startNode = startNode;
+			this.targetNode = targetNode;
+		}
+		
+		public String getLabel() {
+			return this.label;
+		}
+		
+		public Node getStartNode() {
+			return this.startNode;
+		}
+		
+		public Node getTargetNode() {
+			return this.targetNode;
+		}
+		
+		public String toString() {
+			return (this.label + ", " + Integer.toString(this.startNode.number) + ", " + Integer.toString(this.targetNode.number));
+		}
+	}
+	
 	public class Output {
 		String oString = "digraph program_graph {rankdir=LR;\n" + 
 				"node [shape = circle]; q▷;\n" + 
 				"node [shape = doublecircle]; q◀; \n" + 
 				"node [shape = circle]";
 		int nodeCount = 0;
+		LinkedList<Node> ifNodeStash = new LinkedList<Node>();
+		LinkedList<Node> nodeStash = new LinkedList<Node>();
+		ArrayList<Edge> edgeList = new ArrayList<Edge>();
 		
 		public void append (String txt) {
 			this.oString = this.oString + "\n" + txt;
@@ -102,6 +161,8 @@ public class Compiler {
 		
 		public void createFile () {
 			
+			System.out.println(myString.edgeList);
+			
 			this.append("}");
 			
 			File f = new File("PG.gv");
@@ -113,8 +174,7 @@ public class Compiler {
 	        catch (Exception e) {
 	        	System.out.println("Couldn't write to file");
 	        }
-		}
-		
+		}		
 	}
 
 
@@ -123,42 +183,76 @@ public class Compiler {
 			// This implements the grammar defined in the .g file. Each node's children are visited to iterate over the tree.
 			// We now need to return strings that match the .gv file format and append them in an output file
 
-			@Override public String visitStart(CompilerParser.StartContext ctx) {return visitChildren(ctx);}
+			@Override public String visitStart(CompilerParser.StartContext ctx) {
+				myString.nodeStash.add(new Node(-1, true, false));
+				myString.nodeStash.add(new Node(-1, false, true));
+				return visitChildren(ctx);}
 			@Override public String visitVarDef(CompilerParser.VarDefContext ctx) {
-				myString.appendEdge(String.valueOf(ctx.lhs.getText()) + " := " + String.valueOf(ctx.rhs.getText()), myString.nodeCount, (myString.nodeCount + 1));
+				// Create new edge (and node) and label it with a variable definition
+				Node startNode = myString.nodeStash.pop();
+				myString.nodeStash.push(new Node(myString.nodeCount, false, false));
 				myString.nodeCount++;
+				Node targetNode = myString.nodeStash.getFirst();
+				
+				myString.edgeList.add(new Edge(String.valueOf(ctx.lhs.getText()) + " := " + String.valueOf(ctx.rhs.getText()), startNode, targetNode));
 				System.out.println(String.valueOf(ctx.lhs.getText()) + " := " + String.valueOf(ctx.rhs.getText()));
 				return visitChildren(ctx); }
-			@Override public String visitAppend(CompilerParser.AppendContext ctx) { 
+			@Override public String visitAppend(CompilerParser.AppendContext ctx) {
 				System.out.println("append");
+				// Nothing needs to happen here
 				return visitChildren(ctx); }
 			@Override public String visitDoLoop(CompilerParser.DoLoopContext ctx) {
-				System.out.println("doloop");
+				myString.ifNodeStash.push(myString.nodeStash.getFirst());
+				System.out.println("do");
+				// trickey. End node equals starting node, but number of edges is unknown
 				return visitChildren(ctx); }
 			@Override public String visitSkip(CompilerParser.SkipContext ctx) {
+				Node startNode = myString.nodeStash.getFirst();
+				myString.nodeStash.push(new Node(myString.nodeCount, false, false));
+				myString.nodeCount++;
+				Node targetNode = myString.nodeStash.getFirst();
+				
+				myString.edgeList.add(new Edge("Skip", startNode, targetNode));
+				
 				System.out.println("skip");
 				return visitChildren(ctx); }
 			@Override public String visitIf(CompilerParser.IfContext ctx) {
-				System.out.println("if");
+				System.out.println("if...fi");
+				
+				myString.ifNodeStash.push(myString.nodeStash.getFirst());
+				
 				return visitChildren(ctx); }
 			@Override public String visitIfElif(CompilerParser.IfElifContext ctx) {
-				System.out.println("elif");
+				
+				System.out.println("[]");
+				
+				myString.ifNodeStash.push(myString.nodeStash.getFirst());
+				
 				return visitChildren(ctx); }
 			@Override public String visitIfThen(CompilerParser.IfThenContext ctx) {
-				System.out.println("ifthen");
+				// Create a new edge (and node) and label it with the boolean condition
+				System.out.println("->");
+				
+				Node startNode = myString.ifNodeStash.pop();
+				myString.nodeStash.push(new Node(myString.nodeCount, false, false));
+				myString.nodeCount++;
+				Node targetNode = myString.nodeStash.getFirst();
+				myString.edgeList.add(new Edge(String.valueOf(ctx.lhs.getText()), startNode, targetNode));
+				
 				return visitChildren(ctx); }
 			@Override public String visitPlusExpr(CompilerParser.PlusExprContext ctx) {
+				// This somehow works already. Valid for all arithmetic expressions (?)
 				System.out.println("plus");
 				return visitChildren(ctx); }
 			@Override public String visitVar(CompilerParser.VarContext ctx) { 
-				return String.valueOf(ctx.exp.getText()); }
+				// This cannot have children. Therefore return the variable name.
+				return visitChildren(ctx); }//String.valueOf(ctx.exp.getText()); }
 			@Override public String visitNum(CompilerParser.NumContext ctx) {
-				return String.valueOf(ctx.exp.getText()); }
+				// This cannot have children. Therefore return the number value as a string.
+				return visitChildren(ctx); }//String.valueOf(ctx.exp.getText()); }
 			@Override public String visitPowExpr(CompilerParser.PowExprContext ctx) {
-				System.out.println("power");
 				return visitChildren(ctx); }
 			@Override public String visitNestedExpr(CompilerParser.NestedExprContext ctx) {
-				System.out.println("paranthesis");
 				return visitChildren(ctx); }
 			@Override public String visitProdExpr(CompilerParser.ProdExprContext ctx) {
 				System.out.println("product");
@@ -170,46 +264,32 @@ public class Compiler {
 				System.out.println("minus");
 				return visitChildren(ctx); }
 			@Override public String visitOr(CompilerParser.OrContext ctx) {
-				System.out.println("or");
 				return visitChildren(ctx); }
 			@Override public String visitTrue(CompilerParser.TrueContext ctx) {
-				System.out.println("true");
 				return String.valueOf(ctx.exp.getText()); }
 			@Override public String visitSmallerEqual(CompilerParser.SmallerEqualContext ctx) {
-				System.out.println("smallerequal");
 				return visitChildren(ctx); }
 			@Override public String visitFalse(CompilerParser.FalseContext ctx) {
-				System.out.println("false");
 				return String.valueOf(ctx.exp.getText()); }
 			@Override public String visitUnequal(CompilerParser.UnequalContext ctx) {
-				System.out.println("unequal");
 				return visitChildren(ctx); }
 			@Override public String visitNeg(CompilerParser.NegContext ctx) {
-				System.out.println("neg");
 				return visitChildren(ctx); }
 			@Override public String visitGreaterEqual(CompilerParser.GreaterEqualContext ctx) {
-				System.out.println("greaterequal");
 				return visitChildren(ctx); }
 			@Override public String visitEqual(CompilerParser.EqualContext ctx) {
-				System.out.println("equal");
 				return visitChildren(ctx); }
 			@Override public String visitNestedBool(CompilerParser.NestedBoolContext ctx) {
-				System.out.println("bparanthesis");
 				return visitChildren(ctx); }
 			@Override public String visitSCOr(CompilerParser.SCOrContext ctx) {
-				System.out.println("scor");
 				return visitChildren(ctx); }
 			@Override public String visitAnd(CompilerParser.AndContext ctx) {
-				System.out.println("and");
 				return visitChildren(ctx); }
 			@Override public String visitSCAnd(CompilerParser.SCAndContext ctx) {
-				System.out.println("scand");
 				return visitChildren(ctx); }
 			@Override public String visitGreater(CompilerParser.GreaterContext ctx) {
-				System.out.println("greater");
 				return visitChildren(ctx); }
 			@Override public String visitSmaller(CompilerParser.SmallerContext ctx) {
-				System.out.println("smaller");
 				return visitChildren(ctx); }
 	}
 	

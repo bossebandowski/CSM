@@ -2,6 +2,5 @@ digraph program_graph {rankdir=LR;
 node [shape = circle]; qâ–·;
 node [shape = doublecircle]; qâ—€; 
 node [shape = circle]
-qâ-· -> q1 [label = "a := 1+2"];
 null
 }
