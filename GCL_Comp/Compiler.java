@@ -127,8 +127,14 @@ public class Compiler {
 			return this.targetNode;
 		}
 		
-		public String toString() {
-			return (this.label + ", " + Integer.toString(this.startNode.number) + ", " + Integer.toString(this.targetNode.number));
+		public String outputEdge() {
+			if (this.startNode.start) {
+				return ( "qâ-· -> q" + String.valueOf(this.targetNode.number) + " [label = \"" + label +"\"];");
+			} else  if (this.targetNode.end) {
+				return ("q" + String.valueOf(this.startNode.number) +" -> qâ—€" + " [label = \"" + label +"\"];");
+			} else {
+				return ("q" + String.valueOf(this.startNode.number) +" -> q" + String.valueOf(this.targetNode.number) + " [label = \"" + label +"\"];");
+			}
 		}
 	}
 	
@@ -146,22 +152,11 @@ public class Compiler {
 			this.oString = this.oString + "\n" + txt;
 		}
 		
-		public void appendEdge (String label, int startNode, int targetNode) {
-			
-			String edge;
-			
-			if (this.nodeCount == 0) {
-				edge = "qâ-· -> q" + Integer.toString(targetNode) + " [label = \"" + label +"\"];";
-			} else {
-				edge = "q" + Integer.toString(startNode) +" -> q" + Integer.toString(targetNode) + " [label = \"" + label +"\"];";
-			}
-
-			this.append(edge);
-		}
-		
 		public void createFile () {
 			
-			System.out.println(myString.edgeList);
+			for (Edge edge : this.edgeList) {
+				this.append(edge.outputEdge());
+			}
 			
 			this.append("}");
 			
@@ -207,7 +202,7 @@ public class Compiler {
 				// trickey. End node equals starting node, but number of edges is unknown
 				return visitChildren(ctx); }
 			@Override public String visitSkip(CompilerParser.SkipContext ctx) {
-				Node startNode = myString.nodeStash.getFirst();
+				Node startNode = myString.nodeStash.pop();
 				myString.nodeStash.push(new Node(myString.nodeCount, false, false));
 				myString.nodeCount++;
 				Node targetNode = myString.nodeStash.getFirst();
