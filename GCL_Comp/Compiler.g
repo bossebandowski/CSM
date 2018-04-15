@@ -53,7 +53,7 @@ WS		: [ \r\t\n]+ -> skip ;
 
 /* Grammar rules */
 
-start		: c EOF ;
+start		: exp = c EOF ;
 
 c     :			lhs = VAR VARDEF rhs = a		#VarDef
       |			SKP						#Skip

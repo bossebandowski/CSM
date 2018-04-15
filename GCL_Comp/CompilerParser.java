@@ -88,10 +88,11 @@ public class CompilerParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 	public static class StartContext extends ParserRuleContext {
+		public CContext exp;
+		public TerminalNode EOF() { return getToken(CompilerParser.EOF, 0); }
 		public CContext c() {
 			return getRuleContext(CContext.class,0);
 		}
-		public TerminalNode EOF() { return getToken(CompilerParser.EOF, 0); }
 		public StartContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -110,7 +111,7 @@ public class CompilerParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(10);
-			c(0);
+			((StartContext)_localctx).exp = c(0);
 			setState(11);
 			match(EOF);
 			}

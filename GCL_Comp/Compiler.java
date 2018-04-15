@@ -26,11 +26,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class Compiler {
 	
 	Output myString = new Output();
+	PG aPG = new PG ();
 
 	public static void main(String args[]) throws Exception  {
 
@@ -42,7 +44,7 @@ public class Compiler {
 		}
 		catch (Exception  e) {
 			System.out.println("ko");
-			e.printStackTrace ();
+			// e.printStackTrace ();
 		}
 	}
 
@@ -74,68 +76,9 @@ public class Compiler {
 		parser.setErrorHandler(new BailErrorStrategy());
 
 
-		myString.append(check.visit(parser.start()));
+		aPG.body = check.visit(parser.start());
+		System.out.println(aPG.body);
 		myString.createFile();
-		
-        
-	}
-	
-	public class Node {
-		int number;
-		boolean start = false;
-		boolean end = false;
-		
-		public Node (int number, boolean start, boolean end) {
-			this.number = number;
-			this.start = start;
-			this.end = end;
-		}
-		
-		public int getNumber() {
-			return this.number;
-		}
-		
-		public boolean isStart() {
-			return this.start;
-		}
-		
-		public boolean isEnd() {
-			return this.end;
-		}
-	}
-	
-	public class Edge {
-		String label;
-		Node startNode;
-		Node targetNode;
-		
-		public Edge (String label, Node startNode, Node targetNode) {
-			this.label = label;
-			this.startNode = startNode;
-			this.targetNode = targetNode;
-		}
-		
-		public String getLabel() {
-			return this.label;
-		}
-		
-		public Node getStartNode() {
-			return this.startNode;
-		}
-		
-		public Node getTargetNode() {
-			return this.targetNode;
-		}
-		
-		public String outputEdge() {
-			if (this.startNode.start) {
-				return ( "q�-� -> q" + String.valueOf(this.targetNode.number) + " [label = \"" + label +"\"];");
-			} else  if (this.targetNode.end) {
-				return ("q" + String.valueOf(this.startNode.number) +" -> q◀" + " [label = \"" + label +"\"];");
-			} else {
-				return ("q" + String.valueOf(this.startNode.number) +" -> q" + String.valueOf(this.targetNode.number) + " [label = \"" + label +"\"];");
-			}
-		}
 	}
 	
 	public class Output {
@@ -144,9 +87,6 @@ public class Compiler {
 				"node [shape = doublecircle]; q◀; \n" + 
 				"node [shape = circle]";
 		int nodeCount = 0;
-		LinkedList<Node> ifNodeStash = new LinkedList<Node>();
-		LinkedList<Node> nodeStash = new LinkedList<Node>();
-		ArrayList<Edge> edgeList = new ArrayList<Edge>();
 		
 		public void append (String txt) {
 			this.oString = this.oString + "\n" + txt;
@@ -154,14 +94,10 @@ public class Compiler {
 		
 		public void createFile () {
 			
-			for (Edge edge : this.edgeList) {
-				this.append(edge.outputEdge());
-			}
-			
 			this.append("}");
 			
 			File f = new File("PG.gv");
-	        
+			
 	        try (PrintWriter out = new PrintWriter(f)) {
 	            out.println(this.oString);
 		        f.createNewFile();
@@ -171,120 +107,165 @@ public class Compiler {
 	        }
 		}		
 	}
-
-
-	public class Checkup extends CompilerBaseVisitor<String> {
 	
-			// This implements the grammar defined in the .g file. Each node's children are visited to iterate over the tree.
-			// We now need to return strings that match the .gv file format and append them in an output file
+	public class PG {
+		String header = "digraph program_graph {rankdir=LR;\n" + 
+				"node [shape = circle]; q▷;\n" + 
+				"node [shape = doublecircle]; q◀; \n" + 
+				"node [shape = circle]";
+		PG body;
+		int nodeCount = 0;
+		Node firstNode;
+		Node endNode;
+		PG midextend;
+		PG right;
+		PG left;
+		List<Node> ifNodeStash = new LinkedList<Node>();
+	}
+	
+	public class Edge extends PG {
+		Label label;
+		Node startNode;
+		Node targetNode;
+		boolean isNull;
+		
+		public Edge (Label label, Node startNode, Node targetNode, PG midextend, PG right, PG left) {
+			this.label = label;
+			this.startNode = startNode;
+			this.targetNode = targetNode;
+			this.midextend = midextend;
+			this.right = right;
+			this.left = left;
+			this.isNull = false;
+		}
+		
+		public Edge () {
+			this.isNull = true;
+		}
+		
+		public void printEdge () {
+			System.out.println(this.label + ", " + this.startNode + ", " + this.targetNode);
+		}
+		
+		public String toString() {
+			if (this.isNull) {
+				return "";
+			} else {
+				return Integer.toString(this.startNode.number) + " -> " + Integer.toString(this.targetNode.number) + ", [label = " + this.label.name + "]\n" + this.midextend.toString() + this.left.toString() + this.right.toString();
+			}
+		}
+	}
+	
+	public class Label extends PG {
+		String name;
+		
+		public Label (String name) {
+			this.name = name;
+		}
+	}
+	
+	public class Node extends PG {
+		int number;
+		
+		public Node (int i) {
+			this.number = i;
+		}
+	}
 
-			@Override public String visitStart(CompilerParser.StartContext ctx) {
-				myString.nodeStash.add(new Node(-1, true, false));
-				myString.nodeStash.add(new Node(-1, false, true));
-				return visitChildren(ctx);}
-			@Override public String visitVarDef(CompilerParser.VarDefContext ctx) {
-				// Create new edge (and node) and label it with a variable definition
-				Node startNode = myString.nodeStash.pop();
-				myString.nodeStash.push(new Node(myString.nodeCount, false, false));
-				myString.nodeCount++;
-				Node targetNode = myString.nodeStash.getFirst();
-				
-				myString.edgeList.add(new Edge(String.valueOf(ctx.lhs.getText()) + " := " + String.valueOf(ctx.rhs.getText()), startNode, targetNode));
-				System.out.println(String.valueOf(ctx.lhs.getText()) + " := " + String.valueOf(ctx.rhs.getText()));
-				return visitChildren(ctx); }
-			@Override public String visitAppend(CompilerParser.AppendContext ctx) {
+
+	public class Checkup extends CompilerBaseVisitor<PG> {
+		
+			@Override public PG visitStart(CompilerParser.StartContext ctx) {
+				System.out.println("Start");
+				aPG.firstNode = new Node(-1);
+				aPG.endNode = new Node(-2);
+				Label label = new Label("null");
+				return new Edge(label, aPG.firstNode, aPG.endNode, visit(ctx.exp), new Edge(), new Edge()); }
+			@Override public PG visitVarDef(CompilerParser.VarDefContext ctx) {
+				System.out.println("vardef");
+				Label label = new Label(String.valueOf(ctx.getText()));
+				Node startNode = new Node(aPG.nodeCount);
+				aPG.nodeCount++;
+				Node targetNode = new Node(aPG.nodeCount);
+				return new Edge(label, startNode, targetNode, new Edge(), new Edge(), new Edge()); }
+			@Override public PG visitAppend(CompilerParser.AppendContext ctx) {
 				System.out.println("append");
-				// Nothing needs to happen here
-				return visitChildren(ctx); }
-			@Override public String visitDoLoop(CompilerParser.DoLoopContext ctx) {
-				myString.ifNodeStash.push(myString.nodeStash.getFirst());
+				Label label = new Label("null");
+				Node startNode = new Node(aPG.nodeCount);
+				Node targetNode = new Node(aPG.nodeCount);
+				return new Edge(label, startNode, targetNode, new Edge(), visit(ctx.lhs), visit(ctx.rhs)); }
+			@Override public PG visitDoLoop(CompilerParser.DoLoopContext ctx) {
 				System.out.println("do");
-				// trickey. End node equals starting node, but number of edges is unknown
-				return visitChildren(ctx); }
-			@Override public String visitSkip(CompilerParser.SkipContext ctx) {
-				Node startNode = myString.nodeStash.pop();
-				myString.nodeStash.push(new Node(myString.nodeCount, false, false));
-				myString.nodeCount++;
-				Node targetNode = myString.nodeStash.getFirst();
-				
-				myString.edgeList.add(new Edge("Skip", startNode, targetNode));
-				
+				Label label = new Label("null");
+				Node startNode = new Node(aPG.nodeCount);
+				return new Edge(label, startNode, startNode, visit(ctx.exp), new Edge(), new Edge()); }
+			@Override public PG visitSkip(CompilerParser.SkipContext ctx) {
 				System.out.println("skip");
-				return visitChildren(ctx); }
-			@Override public String visitIf(CompilerParser.IfContext ctx) {
+				Label label = new Label("skip");
+				Node startNode = new Node(aPG.nodeCount);
+				aPG.nodeCount++;
+				Node targetNode = new Node(aPG.nodeCount);
+				return new Edge(label, startNode, targetNode, new Edge(), new Edge(), new Edge()); }
+			@Override public PG visitIf(CompilerParser.IfContext ctx) {
 				System.out.println("if...fi");
-				
-				myString.ifNodeStash.push(myString.nodeStash.getFirst());
-				
+				aPG.ifNodeStash.
+				return visit(ctx.exp); }
+			@Override public PG visitIfElif(CompilerParser.IfElifContext ctx) {
+				System.out.println("ifElif");
+				Label label = new Label("null");
+				Node startNode = new Node(aPG.nodeCount);
+				Node targetNode = new Node(aPG.nodeCount);
+				return new Edge(label, startNode, targetNode, new Edge(), visit(ctx.lhs), visit(ctx.rhs)); }
+			@Override public PG visitIfThen(CompilerParser.IfThenContext ctx) {
+				System.out.println("ifThen");
+				Label label = new Label(String.valueOf(ctx.lhs.getText()));
+				Node startNode = new Node(aPG.nodeCount);
+				aPG.nodeCount++;
+				Node targetNode = new Node(aPG.nodeCount);
+				return new Edge(label, startNode, targetNode, new Edge(), new Edge(), visit(ctx.rhs)); }
+			@Override public PG visitPlusExpr(CompilerParser.PlusExprContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitIfElif(CompilerParser.IfElifContext ctx) {
-				
-				System.out.println("[]");
-				
-				myString.ifNodeStash.push(myString.nodeStash.getFirst());
-				
+			@Override public PG visitVar(CompilerParser.VarContext ctx) { 
 				return visitChildren(ctx); }
-			@Override public String visitIfThen(CompilerParser.IfThenContext ctx) {
-				// Create a new edge (and node) and label it with the boolean condition
-				System.out.println("->");
-				
-				Node startNode = myString.ifNodeStash.pop();
-				myString.nodeStash.push(new Node(myString.nodeCount, false, false));
-				myString.nodeCount++;
-				Node targetNode = myString.nodeStash.getFirst();
-				myString.edgeList.add(new Edge(String.valueOf(ctx.lhs.getText()), startNode, targetNode));
-				
+			@Override public PG visitNum(CompilerParser.NumContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitPlusExpr(CompilerParser.PlusExprContext ctx) {
-				// This somehow works already. Valid for all arithmetic expressions (?)
-				System.out.println("plus");
+			@Override public PG visitPowExpr(CompilerParser.PowExprContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitVar(CompilerParser.VarContext ctx) { 
-				// This cannot have children. Therefore return the variable name.
-				return visitChildren(ctx); }//String.valueOf(ctx.exp.getText()); }
-			@Override public String visitNum(CompilerParser.NumContext ctx) {
-				// This cannot have children. Therefore return the number value as a string.
-				return visitChildren(ctx); }//String.valueOf(ctx.exp.getText()); }
-			@Override public String visitPowExpr(CompilerParser.PowExprContext ctx) {
+			@Override public PG visitNestedExpr(CompilerParser.NestedExprContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitNestedExpr(CompilerParser.NestedExprContext ctx) {
+			@Override public PG visitProdExpr(CompilerParser.ProdExprContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitProdExpr(CompilerParser.ProdExprContext ctx) {
-				System.out.println("product");
+			@Override public PG visitUMinusExpr(CompilerParser.UMinusExprContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitUMinusExpr(CompilerParser.UMinusExprContext ctx) {
-				System.out.println("uminus");
+			@Override public PG visitMinusExpr(CompilerParser.MinusExprContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitMinusExpr(CompilerParser.MinusExprContext ctx) {
-				System.out.println("minus");
+			@Override public PG visitOr(CompilerParser.OrContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitOr(CompilerParser.OrContext ctx) {
+			@Override public PG visitTrue(CompilerParser.TrueContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitTrue(CompilerParser.TrueContext ctx) {
-				return String.valueOf(ctx.exp.getText()); }
-			@Override public String visitSmallerEqual(CompilerParser.SmallerEqualContext ctx) {
+			@Override public PG visitSmallerEqual(CompilerParser.SmallerEqualContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitFalse(CompilerParser.FalseContext ctx) {
-				return String.valueOf(ctx.exp.getText()); }
-			@Override public String visitUnequal(CompilerParser.UnequalContext ctx) {
+			@Override public PG visitFalse(CompilerParser.FalseContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitNeg(CompilerParser.NegContext ctx) {
+			@Override public PG visitUnequal(CompilerParser.UnequalContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitGreaterEqual(CompilerParser.GreaterEqualContext ctx) {
+			@Override public PG visitNeg(CompilerParser.NegContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitEqual(CompilerParser.EqualContext ctx) {
+			@Override public PG visitGreaterEqual(CompilerParser.GreaterEqualContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitNestedBool(CompilerParser.NestedBoolContext ctx) {
+			@Override public PG visitEqual(CompilerParser.EqualContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitSCOr(CompilerParser.SCOrContext ctx) {
+			@Override public PG visitNestedBool(CompilerParser.NestedBoolContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitAnd(CompilerParser.AndContext ctx) {
+			@Override public PG visitSCOr(CompilerParser.SCOrContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitSCAnd(CompilerParser.SCAndContext ctx) {
+			@Override public PG visitAnd(CompilerParser.AndContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitGreater(CompilerParser.GreaterContext ctx) {
+			@Override public PG visitSCAnd(CompilerParser.SCAndContext ctx) {
 				return visitChildren(ctx); }
-			@Override public String visitSmaller(CompilerParser.SmallerContext ctx) {
+			@Override public PG visitGreater(CompilerParser.GreaterContext ctx) {
+				return visitChildren(ctx); }
+			@Override public PG visitSmaller(CompilerParser.SmallerContext ctx) {
 				return visitChildren(ctx); }
 	}
 	
