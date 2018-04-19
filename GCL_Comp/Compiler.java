@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class Compiler {
 		}
 		catch (Exception  e) {
 			System.out.println("ko");
-			// e.printStackTrace ();
+			e.printStackTrace ();
 		}
 	}
 
@@ -78,6 +79,23 @@ public class Compiler {
 
 		aPG.body = check.visit(parser.start());
 		System.out.println(aPG.body);
+		System.out.println("--------------");
+		
+		aPG.toEdge(aPG.body);
+		
+		for (Edge e : aPG.edges) {
+			System.out.println(e);
+		}
+		
+		/*for (int i = 0; i < 5; i++) {
+			aPG.removeDuplicateEdges();
+			aPG.removeNullEdges();
+		}
+		
+		for (Edge e : aPG.edges) {
+			System.out.println(e);
+		}*/
+		
 		myString.createFile();
 	}
 	
@@ -120,16 +138,56 @@ public class Compiler {
 		PG midextend;
 		PG right;
 		PG left;
-		List<Node> ifNodeStash = new LinkedList<Node>();
-	}
-	
-	public class Edge extends PG {
 		Label label;
 		Node startNode;
 		Node targetNode;
 		boolean isNull;
+		LinkedList<Node> ifNodeStash = new LinkedList<Node>();
+		ArrayList <Edge> edges = new ArrayList <Edge>();
 		
-		public Edge (Label label, Node startNode, Node targetNode, PG midextend, PG right, PG left) {
+		public void toEdge (PG body) {
+			if (body.label.name == "null" && !body.midextend.isNull) {
+				aPG.edges.add(new Edge(body.midextend.label, body.startNode, body.midextend.targetNode, new Edge(), new Edge(), new Edge()));
+				body.midextend.toEdge(body.midextend);
+				aPG.edges.add(new Edge(body.midextend.label, body.midextend.targetNode, body.targetNode, new Edge(), new Edge(), new Edge()));
+			} else if (body.label.name == "null" && !body.left.isNull && !body.right.isNull) {
+				body.left.toEdge(body.left);
+				body.right.toEdge(body.right);
+			}
+			else {
+				aPG.edges.add(new Edge(body.label, body.startNode, body.targetNode, new Edge(), new Edge(), new Edge()));
+			}
+		}
+		
+		public void removeNullEdges () {
+			for (int i = 0; i < this.edges.size(); i++) {
+				if (this.edges.get(i).label.name == "null") {
+					if (i == 0) {
+						this.edges.get(i+1).startNode = this.edges.get(i).startNode;
+						this.edges.remove(i);
+					} else {
+						this.edges.get(i-1).targetNode = this.edges.get(i).startNode;
+						this.edges.remove(i);
+					}
+				}
+			}
+		}
+
+		public void removeDuplicateEdges () {
+			for (int i = 0; i < this.edges.size() - 1; i++) {
+				if (this.edges.get(i).label.name == this.edges.get(i+1).label.name) {
+					this.edges.get(i).targetNode = this.edges.get(i+1).targetNode;
+					this.edges.remove(i+1);
+				}
+			}
+		}
+	
+	}
+	
+	
+	public class Edge extends PG {
+		
+		public Edge (Label label, Node startNode, Node targetNode, PG midextend, PG left, PG right) {
 			this.label = label;
 			this.startNode = startNode;
 			this.targetNode = targetNode;
@@ -196,6 +254,7 @@ public class Compiler {
 				return new Edge(label, startNode, targetNode, new Edge(), visit(ctx.lhs), visit(ctx.rhs)); }
 			@Override public PG visitDoLoop(CompilerParser.DoLoopContext ctx) {
 				System.out.println("do");
+				aPG.ifNodeStash.push(new Node(aPG.nodeCount));
 				Label label = new Label("null");
 				Node startNode = new Node(aPG.nodeCount);
 				return new Edge(label, startNode, startNode, visit(ctx.exp), new Edge(), new Edge()); }
@@ -208,21 +267,22 @@ public class Compiler {
 				return new Edge(label, startNode, targetNode, new Edge(), new Edge(), new Edge()); }
 			@Override public PG visitIf(CompilerParser.IfContext ctx) {
 				System.out.println("if...fi");
-				aPG.ifNodeStash.
+				aPG.ifNodeStash.push(new Node(aPG.nodeCount));
 				return visit(ctx.exp); }
 			@Override public PG visitIfElif(CompilerParser.IfElifContext ctx) {
 				System.out.println("ifElif");
 				Label label = new Label("null");
+				aPG.ifNodeStash.push(new Node(aPG.nodeCount));
 				Node startNode = new Node(aPG.nodeCount);
 				Node targetNode = new Node(aPG.nodeCount);
 				return new Edge(label, startNode, targetNode, new Edge(), visit(ctx.lhs), visit(ctx.rhs)); }
 			@Override public PG visitIfThen(CompilerParser.IfThenContext ctx) {
 				System.out.println("ifThen");
 				Label label = new Label(String.valueOf(ctx.lhs.getText()));
-				Node startNode = new Node(aPG.nodeCount);
+				Node startNode = aPG.ifNodeStash.pop();
 				aPG.nodeCount++;
 				Node targetNode = new Node(aPG.nodeCount);
-				return new Edge(label, startNode, targetNode, new Edge(), new Edge(), visit(ctx.rhs)); }
+				return new Edge(label, startNode, aPG.endNode, visit(ctx.rhs), new Edge(), new Edge()); }
 			@Override public PG visitPlusExpr(CompilerParser.PlusExprContext ctx) {
 				return visitChildren(ctx); }
 			@Override public PG visitVar(CompilerParser.VarContext ctx) { 
